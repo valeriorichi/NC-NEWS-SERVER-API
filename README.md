@@ -1,57 +1,49 @@
-# Northcoders News API
+# Project NC-NEWS SERVER
+# README
 
-## Background
+Welcome to my first backend project! I'm currently a student at Northcoders school, and I'm excited to share what I've been working on. This project is focused on building a database with real-looking development data, as well as test data. I've included detailed instructions on how to set up the environment variables and run the project locally, so please don't hesitate to reach out if you have any questions or feedback. Thank you for taking the time to check out my work!
 
-We will be building an API for the purpose of accessing application data programmatically. The intention here is to mimic the building of a real world backend service (such as reddit) which should provide this information to the front end architecture.
 
-Your database will be PSQL, and you will interact with it using [node-postgres](https://node-postgres.com/).
+## Project Overview
 
-## Kanban
+This project contains two databases - one for real-looking development data and another for test data. The project structure includes a `db` folder with some data, a `setup.sql` file, and a `seeds` folder.
 
-### Link to your Trello Board here: https://trello.com/b/7yiHe1nI
 
-To keep track of the tasks involved in this project we're going to use a kanban board. Ensure that you work on one _ticket_ at time. You can click on the ticket to find out more information about what is required for the feature. A ticket is not considered complete unless both the happy path and errors response are handled. You can make use of the checklist on each ticket to keep track of the errors you want to handle. You can also make use of [error-handling.md](error-handling.md) to consider the error codes we may wish to respond with.
+## Getting Started
 
-**Please ensure you work through the tickets in numerical order.**
+To get started with this project, you'll need to set up your environment variables. There are two `.env` files you need to create: `.env.test` and `.env.development`. In each file, add `PGDATABASE=<database_name_here>`, with the correct database name for that environment (see `/db/setup.sql` for the database names).
 
-## Git Branching and Pull Requests
+It's important to double check that these `.env` files are added to the `.gitignore` file so that they're not accidentally committed to version control.
 
-You will be working on each ticket on a new **branch**.
+Once you've set up your environment variables, run `npm install` to install all the necessary packages. Please do not install specific packages as you can do this down the line when you need them.
 
-To create and switch to a new git branch use the command:
 
-```
-git checkout -b <new branch name>
-```
+## NPM Scripts
 
-This will create a branch and move over to that branch. (Omit the `-b` flag if you wish to switch to an already existing branch).
+The project comes with some pre-defined npm scripts that you should be aware of:
 
-We recommend that you name the branch after the number assigned to each ticket via the header. eg. `ncnews-1`
+* `npm run setup-dbs`: Sets up the development and test databases based on the information in the /db/setup.sql file.
+* `npm run seed`: Seeds the development database with data from the /db/seeds folder.
+* `npm run test`: Runs the tests using the test database.
 
-When pushing the branch to git hub ensure that you make reference to the branch you are pushing to on the remote.
 
-```
-git push origin <branch name>
-```
+## Folder Structure
 
-From github you can make a pull request and share the link and ticket number via a pull request specific nchelp using the command `nchelp pr`. A tutor will swing by to review your code. Ensure that you keep your trello up to date whilst you await the PR approval. Regular `nchelp` will be available for when you need support.
+The `index.js` file in each of the data folders exports all the data from that folder, currently stored in separate files. This is so that, when you need access to the data elsewhere, you can write one convenient require statement - to the index file, rather than having to require each file individually. Think of it like an index of a book - a place to refer to! Make sure the index file exports an object with values of the data from that folder with the keys:
 
-Once a pull request been accepted be sure to switch back to the main branch and pull down the updated changes.
+* `topicData`
+* `articleData`
+* `userData`
+* `commentData`
 
-```
-git checkout main
+## Connecting to the Databases
+As `.env.*` is added to the `.gitignore`, anyone who wishes to clone your repo will not have access to the necessary environment variables. In order to connect to the two databases locally, a developer must create two `.env` files in the root directory of the project:
 
-git pull origin main
-```
+* `.env.test`: Add `PGDATABASE=<test_database_name_here>`
+* `.env.development`: Add `PGDATABASE=<dev_database_name_here>`
 
-You can tidy up your local branches once they have been pull into main by deleting them:
+Replace `<test_database_name_here>` and `<dev_database_name_here>` with the correct names of the test and development databases, respectively (see `/db/setup.sql` for the database names).
 
-```
-git branch -D <local branch>
-```
+## Conclusion 
 
-## Husky
-
-To ensure we are not commiting broken code this project makes use of git hooks. Git hooks are scripts triggered during certain events in the git lifecycle. Husky is a popular package which allows us to set up and maintain these scripts. This project makes use a _pre-commit hook_. When we attempt to commit our work, the script defined in the `pre-commit` file will run. If any of our tests fail than the commit will be aborted.
-
-The [Husky documentation](https://typicode.github.io/husky/#/) explains how to configure Husky for your own project as well as creating your own custom hooks.\_
+We hope this helps you get started with the project! If you have any questions or concerns, please reach out to the project team.
