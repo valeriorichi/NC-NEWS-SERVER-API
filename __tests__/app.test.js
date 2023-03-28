@@ -47,9 +47,48 @@ describe("GET /api/topics", () => {
           .get("/api/somethingElse")
           .expect(404)
           .then(({ body }) => {
-            expect(body.msg).toBe('Sorry we can’t find that page! Don’t worry, though everything is STILL AWESOME!');
+            expect(body.msg).toBe('Invalid path entered. Please check your URL and try again.');
           });
     }); 
+});
+
+
+describe("GET /api/articles/:article_id", () => {
+  test("GET 200: responds with article object, which should have certain properties ", () => {
+    return request(app)
+      .get("/api/articles/2")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.article).toEqual({
+          article_id: 2,
+          title: 'Sony Vaio; or, The Laptop',
+          topic: 'mitch',
+          author: 'icellusedkars',
+          body: expect.any(String),
+          created_at: "2020-10-16T05:03:00.000Z",
+          votes: 0,
+          article_img_url: expect.any(String),
+        })
+        expect(body.article.body).toMatch(/^Call me Mitchell/);
+        expect(body.article.article_img_url).toMatch(/^https/)
+      })
+  });
+  test("GET 404: responds with error when article with queried id does not exist ", () => {
+    return request(app)
+      .get("/api/articles/1000")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe('Requested information not found!');
+      });
+  });
+  test("GET 400: responds with error when article id entered in wring format", () => {
+    return request(app)
+      .get("/api/articles/abc")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe('Bad article_id!');
+      });
+  });
 });
 
 
