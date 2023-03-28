@@ -7,7 +7,7 @@ exports.fetchAllTopics = () => {
       SELECT * FROM topics;
   `
   )
-  .then((topics) => {
-    return topics.rows;
+  .then((result) => {
+    return result.rows;
   })
 };
