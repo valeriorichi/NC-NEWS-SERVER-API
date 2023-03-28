@@ -13,9 +13,6 @@ exports.fetchAllTopics = () => {
 };
 
 exports.fetchArticleById = (article_id) => {
-  if (!Number.isInteger(parseInt(article_id))) {
-    return Promise.reject({status: 400, msg: "Bad article_id!"})
-  } else {
     return db
     .query(
       `
@@ -29,5 +26,4 @@ exports.fetchArticleById = (article_id) => {
       return result.rows[0];
       }
     })
-  }
 };
