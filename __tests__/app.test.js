@@ -3,6 +3,8 @@ const app = require('../app');
 const seed = require('../db/seeds/seed');
 const testData = require('../db/data/test-data/');
 const connection = require('../db/connection');
+const db = require("../db/connection");
+
 
 beforeEach(() => {
   return seed(testData);
@@ -22,6 +24,14 @@ describe("GET /api/", () => {
         expect(msg).toBe("NC-NEWS Server is up and running...");
       });
   });
+  test("GET 404: responds with error and message when requesting a non-existent endpoint", () => {
+    return request(app)
+      .get("/api/non-existent-endpoint")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe('Invalid path entered. Please check your URL and try again.');
+      });
+  }); 
 });
 
 
@@ -42,14 +52,6 @@ describe("GET /api/topics", () => {
           });
         });
     });
-    test("GET 400: responds with error and message when a route does not exist,", () => {
-        return request(app)
-          .get("/api/somethingElse")
-          .expect(404)
-          .then(({ body }) => {
-            expect(body.msg).toBe('Invalid path entered. Please check your URL and try again.');
-          });
-    }); 
 });
 
 
@@ -81,7 +83,7 @@ describe("GET /api/articles/:article_id", () => {
         expect(body.msg).toBe('Requested information not found!');
       });
   });
-  test("GET 400: responds with error when article id entered in wring format", () => {
+  test("GET 400: responds with error when article id entered in wrong format", () => {
     return request(app)
       .get("/api/articles/abc")
       .expect(400)
@@ -91,4 +93,32 @@ describe("GET /api/articles/:article_id", () => {
   });
 });
 
+describe("GET /api/articles", () => {
+  test("GET 200: array of article objects, each of which should have the certain properties and the articles should be sorted by date in descending order", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body }) => {
+        const { articles } = body;
+        expect(articles).toBeInstanceOf(Array);
+        expect(articles).toHaveLength(12);
+        const articlesCopy = [...articles];
+        const sortedArticles = articlesCopy.sort((articleA, articleB) => {
+          return articleA.created_at - articleB.created_at
+        });
+        expect(articles).toEqual(sortedArticles);
+        articles.forEach((article) => {
+          expect(article).toHaveProperty('article_id', expect.any(Number));
+          expect(article).toHaveProperty('title', expect.any(String));
+          expect(article).toHaveProperty('topic', expect.any(String));
+          expect(article).toHaveProperty('author', expect.any(String));
+          expect(article).toHaveProperty('created_at')
+          expect(new Date(article.created_at)).toEqual(expect.any(Date));
+          expect(article).toHaveProperty('votes', expect.any(Number));
+          expect(article).toHaveProperty('article_img_url', expect.any(String), expect(article.article_img_url).toMatch(/^https/));
+          expect(article).toHaveProperty('comment_count', expect.any(Number));
+          });
+      });
+  });
+});
 

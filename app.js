@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllTopics, getArticleById } = require("./controllers/ncNews.controller");
+const { getAllTopics, getAllArticles, getArticleById } = require("./controllers/ncNews.controller");
 const { handleInvalidPath, handleCustomErrors, handle404Status, handle500Status, handlePSQL400s } = require("./errorHandlingControllers");
 const app = express();
 
@@ -10,6 +10,8 @@ app.get("/api/", (req, res) => {
 });
 
 app.get("/api/topics", getAllTopics);
+
+app.get("/api/articles", getAllArticles);
 
 app.get("/api/articles/:article_id", getArticleById);
 
