@@ -1,6 +1,6 @@
 const express = require("express");
-const { getAllTopics, getAllArticles, getArticleById } = require("./controllers/ncNews.controller");
-const { handleInvalidPath, handleCustomErrors, handle404Status, handle500Status, handlePSQL400s } = require("./errorHandlingControllers");
+const { getAllTopics, getAllArticles, getArticleById, getCommentsByArticleId } = require("./controllers/ncNews.controller");
+const { handleInvalidPath, handleCustomErrors, handle204Status, handle404Status, handle500Status, handlePSQL400s } = require("./errorHandlingControllers");
 const app = express();
 
 app.use(express.json());
@@ -15,10 +15,13 @@ app.get("/api/articles", getAllArticles);
 
 app.get("/api/articles/:article_id", getArticleById);
 
+app.get("/api/articles/:article_id/comments", getCommentsByArticleId)
+
 app.use("/*", handleInvalidPath);
-app.use(handleCustomErrors);
 app.use(handlePSQL400s);
+app.use(handle204Status);
 app.use(handle404Status);
+app.use(handleCustomErrors);
 app.use(handle500Status);
 
 
