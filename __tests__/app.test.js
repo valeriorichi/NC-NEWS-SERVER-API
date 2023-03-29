@@ -5,6 +5,7 @@ const testData = require('../db/data/test-data/');
 const connection = require('../db/connection');
 const db = require("../db/connection");
 
+
 beforeEach(() => {
   return seed(testData);
 });
@@ -23,6 +24,14 @@ describe("GET /api/", () => {
         expect(msg).toBe("NC-NEWS Server is up and running...");
       });
   });
+  test("GET 404: responds with error and message when requesting a non-existent endpoint", () => {
+    return request(app)
+      .get("/api/non-existent-endpoint")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe('Invalid path entered. Please check your URL and try again.');
+      });
+  }); 
 });
 
 
@@ -43,14 +52,6 @@ describe("GET /api/topics", () => {
           });
         });
     });
-    test("GET 404: responds with error and message when requesting a non-existent endpoint", () => {
-        return request(app)
-          .get("/api/non-existent-endpoint")
-          .expect(404)
-          .then(({ body }) => {
-            expect(body.msg).toBe('Invalid path entered. Please check your URL and try again.');
-          });
-    }); 
 });
 
 
@@ -101,11 +102,12 @@ describe("GET /api/articles", () => {
         const { articles } = body;
         expect(articles).toBeInstanceOf(Array);
         expect(articles).toHaveLength(12);
-        const sortedArticles = articles.sort((a, b) => {
-          return new Date(b.created_at) - new Date(a.created_at);
+        const articlesCopy = [...articles];
+        const sortedArticles = articlesCopy.sort((articleA, articleB) => {
+          return articleA.created_at - articleB.created_at
         });
         expect(articles).toEqual(sortedArticles);
-        sortedArticles.forEach((article) => {
+        articles.forEach((article) => {
           expect(article).toHaveProperty('article_id', expect.any(Number));
           expect(article).toHaveProperty('title', expect.any(String));
           expect(article).toHaveProperty('topic', expect.any(String));
@@ -114,18 +116,9 @@ describe("GET /api/articles", () => {
           expect(new Date(article.created_at)).toEqual(expect.any(Date));
           expect(article).toHaveProperty('votes', expect.any(Number));
           expect(article).toHaveProperty('article_img_url', expect.any(String), expect(article.article_img_url).toMatch(/^https/));
-          expect(article).toHaveProperty('comment_count');
-          expect(parseInt(article.comment_count)).not.toBeNaN();
+          expect(article).toHaveProperty('comment_count', expect.any(Number));
           });
       });
-  });
-  test("GET 404: responds with error and message when requesting a non-existent endpoint", () => {
-      return request(app)
-        .get("/api/non-existent-endpoint")
-        .expect(404)
-        .then(({ body }) => {
-          expect(body.msg).toBe('Invalid path entered. Please check your URL and try again.');
-        });
   });
 });
 

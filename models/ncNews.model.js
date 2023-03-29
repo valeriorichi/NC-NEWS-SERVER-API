@@ -24,7 +24,7 @@ exports.fetchAllArticles = () => {
     articles.created_at,
     articles.votes,
     articles.article_img_url,
-    COUNT(comments.comment_id) AS comment_count
+    CAST(COUNT(comments.comment_id) AS INTEGER) AS comment_count
     FROM articles
     LEFT JOIN comments ON articles.article_id = comments.article_id
     GROUP BY articles.article_id
