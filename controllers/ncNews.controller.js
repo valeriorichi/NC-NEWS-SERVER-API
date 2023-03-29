@@ -1,5 +1,5 @@
 const {
-    fetchAllTopics, fetchAllArticles, fetchArticleById, fetchCommentsByArticleId } = require("../models/ncNews.model");
+    fetchAllTopics, fetchAllArticles, fetchArticleById, fetchCommentsByArticleId, insertCommentsByArticleId } = require("../models/ncNews.model");
   
 exports.getAllTopics = (req, res, next) => {
   return fetchAllTopics()
@@ -43,3 +43,14 @@ exports.getCommentsByArticleId = (req, res, next) => {
     });
 };
 
+exports.postCommentsByArticleId = (req, res, next) => {
+  const { article_id } = req.params;
+  const commentToPost = req.body;
+  return insertCommentsByArticleId(article_id, commentToPost)
+    .then((postedComment) => {
+      res.status(201).send({ postedComment });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};

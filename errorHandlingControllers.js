@@ -3,9 +3,12 @@ exports.handleInvalidPath = (req, res, next) => {
   };
 
 exports.handlePSQL400s = (err, req, res, next) => {
-    if (err.code === '22P02') {
+    if (err.code === '22P02' && !err.detail) {
         res.status(400).send(res.statusMessage = "Bad article_id!");
     } else {
+    if (err.code === '23503'){
+        res.status(400).send(res.statusMessage = "Bad Request! " + err.detail);
+    } else 
         next(err);
     }
 };
@@ -19,7 +22,7 @@ exports.handle204Status = (err, req, res, next) => {
 };
 
 exports.handle404Status = (err, req, res, next) => {
-    if (err.status === 404) {
+    if (err.status === 404 ) {
         res.status(404).send(res.statusMessage = 'Requested information not found!');
     } else {
         next(err);

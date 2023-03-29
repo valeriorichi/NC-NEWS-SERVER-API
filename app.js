@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllTopics, getAllArticles, getArticleById, getCommentsByArticleId } = require("./controllers/ncNews.controller");
+const { getAllTopics, getAllArticles, getArticleById, getCommentsByArticleId, postCommentsByArticleId } = require("./controllers/ncNews.controller");
 const { handleInvalidPath, handleCustomErrors, handle204Status, handle404Status, handle500Status, handlePSQL400s } = require("./errorHandlingControllers");
 const app = express();
 
@@ -16,6 +16,8 @@ app.get("/api/articles", getAllArticles);
 app.get("/api/articles/:article_id", getArticleById);
 
 app.get("/api/articles/:article_id/comments", getCommentsByArticleId)
+
+app.post("/api/articles/:article_id/comments", postCommentsByArticleId)
 
 app.use("/*", handleInvalidPath);
 app.use(handlePSQL400s);

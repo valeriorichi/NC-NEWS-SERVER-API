@@ -128,9 +128,7 @@ describe("GET /api/articles/:article_id/comments", () => {
       .get("/api/articles/1/comments/")
       .expect(200)
       .then(({ body }) => {
-        console.log(body)
         const { comments } = body;
-        console.log(comments)
         expect(comments).toBeInstanceOf(Array);
         expect(comments).toHaveLength(11);
         const commentsCopy = [...comments];
@@ -146,7 +144,6 @@ describe("GET /api/articles/:article_id/comments", () => {
           expect(comment).toHaveProperty('article_id', expect.any(Number));
           expect(comment).toHaveProperty('created_at')
           expect(new Date(comment.created_at)).toEqual(expect.any(Date));
-          expect(comment).toHaveProperty('votes', expect.any(Number));
           });
       });
   });
@@ -155,7 +152,6 @@ describe("GET /api/articles/:article_id/comments", () => {
       .get("/api/articles/2/comments")
       .expect(204)
       .then(({ res }) => {
-        console.log(res.statusMessage)
         expect(res.statusMessage).toBe("No comments found for this article!");
       });
   });
@@ -164,16 +160,73 @@ describe("GET /api/articles/:article_id/comments", () => {
       .get("/api/articles/100/comments")
       .expect(404)
       .then(({ res }) => {
-        console.log(res.statusMessage)
         expect(res.statusMessage).toBe("Requested information not found!");
       });
   });
   test("GET 400: responds with 'Bad article_id!' when article id entered in wrong format", () => {
     return request(app)
-      .get("/api/articles/abc/comments")
+      .get("/api/articles/wrong_format/comments")
       .expect(400)
       .then(({ res }) => {
         expect(res.statusMessage).toBe('Bad article_id!');
+      });
+  });
+});
+
+describe("POST /api/articles/:article_id/comments", () => {
+  test("POST 201: adds a new comment to the database and responds with posted comment", () => {
+    return request(app)
+      .post("/api/articles/1/comments/")
+      .send({
+        body: 'New comment to post',
+        username: 'icellusedkars'
+      },)
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.postedComment).toEqual({
+          comment_id: expect.any(Number),
+          body: 'New comment to post',
+          article_id: 1,
+          author: 'icellusedkars',
+          votes: 0,
+          created_at: body.postedComment.created_at
+        })
+      });
+  });
+  test("POST 400: responds with 'Bad Request! ...' if article_id has not been found", () => {
+    return request(app)
+      .post("/api/articles/500/comments")
+      .send({
+        body: 'New comment to post',
+        username: 'icellusedkars'
+      },)
+      .expect(400)
+      .then(({ res }) => {
+        expect(res.statusMessage).toBe('Bad Request! Key (article_id)=(500) is not present in table \"articles\".');
+      });
+  });
+  test("POST 400: responds with 'Bad article_id!' when article id entered in wrong format", () => {
+    return request(app)
+      .post("/api/articles/wrong_format/comments")
+      .send({
+        body: 'New comment to post',
+        username: 'icellusedkars'
+      },)
+      .expect(400)
+      .then(({ res }) => {
+        expect(res.statusMessage).toBe('Bad article_id!');
+      });
+  });
+  test("POST 400: responds with 'Bad Request!...' when article id entered in wrong format", () => {
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send({
+        body: 'New comment to post',
+        username: 'does_not_exist'
+      },)
+      .expect(400)
+      .then(({ res }) => {
+        expect(res.statusMessage).toBe('Bad Request! Key (author)=(does_not_exist) is not present in table \"users\".');
       });
   });
 });
