@@ -4,8 +4,8 @@ exports.fetchAllTopics = () => {
   return db
   .query(
     `
-      SELECT * FROM topics;
-  `
+    SELECT * FROM topics;
+    `
   )
   .then((result) => {
     return result.rows;
@@ -40,8 +40,8 @@ exports.fetchArticleById = (article_id) => {
     return db
     .query(
       `
-        SELECT * FROM articles WHERE article_id = $1;
-    `, [article_id]
+      SELECT * FROM articles WHERE article_id = $1;
+      `, [article_id]
     )
     .then((result) => {
       if (!result.rows.length) {
@@ -51,3 +51,50 @@ exports.fetchArticleById = (article_id) => {
       }
     })
 };
+
+exports.fetchCommentsByArticleId = (article_id) => {
+  return db
+  .query(
+    `
+    SELECT *
+    FROM comments
+    WHERE comments.article_id = $1
+    ORDER BY comments.created_at DESC;
+    `, [article_id]
+  )
+  .then((result) => {
+    if (!result.rows.length) {
+      return db
+        .query(
+          `
+          SELECT * FROM articles WHERE article_id = $1;
+         `, [article_id]
+        )
+        .then((result) => {
+          if (!result.rows.length) {
+            return Promise.reject({status: 404})
+          } else {
+            return Promise.reject({status: 204, msg: 'No comments found for this article!'})}
+        })
+    } else {
+    return result.rows;
+    }
+  })
+};
+
+exports.insertCommentsByArticleId = (article_id, commentToPost) => {
+  const {username, body} = commentToPost
+  return db
+  .query(
+    `
+    INSERT INTO comments (author, body, article_id)
+    VALUES ($1, $2, $3)
+    RETURNING *
+    `, [username, body, article_id]
+  ).then((postedComment) => {
+    return postedComment.rows[0];
+  })
+};
+
+
+

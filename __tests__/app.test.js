@@ -6,6 +6,7 @@ const connection = require('../db/connection');
 const db = require("../db/connection");
 
 
+
 beforeEach(() => {
   return seed(testData);
 });
@@ -83,12 +84,12 @@ describe("GET /api/articles/:article_id", () => {
         expect(body.msg).toBe('Requested information not found!');
       });
   });
-  test("GET 400: responds with error when article id entered in wrong format", () => {
+  test("GET 400: responds with 'Bad article_id!' when article id entered in wrong format", () => {
     return request(app)
       .get("/api/articles/abc")
       .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe('Bad article_id!');
+      .then(({ res }) => {
+        expect(res.statusMessage).toBe('Bad article_id!');
       });
   });
 });
@@ -102,11 +103,7 @@ describe("GET /api/articles", () => {
         const { articles } = body;
         expect(articles).toBeInstanceOf(Array);
         expect(articles).toHaveLength(12);
-        const articlesCopy = [...articles];
-        const sortedArticles = articlesCopy.sort((articleA, articleB) => {
-          return articleA.created_at - articleB.created_at
-        });
-        expect(articles).toEqual(sortedArticles);
+        expect(articles).toBeSorted({ key: articles.created_at })
         articles.forEach((article) => {
           expect(article).toHaveProperty('article_id', expect.any(Number));
           expect(article).toHaveProperty('title', expect.any(String));
@@ -118,6 +115,112 @@ describe("GET /api/articles", () => {
           expect(article).toHaveProperty('article_img_url', expect.any(String), expect(article.article_img_url).toMatch(/^https/));
           expect(article).toHaveProperty('comment_count', expect.any(Number));
           });
+      });
+  });
+});
+
+describe("GET /api/articles/:article_id/comments", () => {
+  test("GET 200: array of comments for the given article_id of which each comment should have the certain properties and the comments should be served with the most recent comments first", () => {
+    return request(app)
+      .get("/api/articles/1/comments/")
+      .expect(200)
+      .then(({ body }) => {
+        const { comments } = body;
+        expect(comments).toBeInstanceOf(Array);
+        expect(comments).toHaveLength(11);
+        expect(comments).toBeSorted({ key: comments.created_at })
+        comments.forEach((comment) => {
+          expect(comment).toHaveProperty('comment_id', expect.any(Number));
+          expect(comment).toHaveProperty('body', expect.any(String));
+          expect(comment).toHaveProperty('votes', expect.any(Number));
+          expect(comment).toHaveProperty('author', expect.any(String));
+          expect(comment).toHaveProperty('article_id', expect.any(Number));
+          expect(comment).toHaveProperty('created_at')
+          expect(new Date(comment.created_at)).toEqual(expect.any(Date));
+          });
+      });
+  });
+  test("GET 204: responds with 'No comments found for this article!' for a valid article_id with no comments", () => {
+    return request(app)
+      .get("/api/articles/2/comments")
+      .set("Accept", "application/json")
+      .expect(204)
+      .then(({ res }) => {
+        expect(res.statusMessage).toBe("No comments found for this article!");
+      });
+  });
+  test("GET 404: responds with not found if article_id has not been found", () => {
+    return request(app)
+      .get("/api/articles/100/comments")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Requested information not found!");
+      });
+  });
+  test("GET 400: responds with 'Bad article_id!' when article id entered in wrong format", () => {
+    return request(app)
+      .get("/api/articles/wrong_format/comments")
+      .expect(400)
+      .then(({ res }) => {
+        expect(res.statusMessage).toBe('Bad article_id!');
+      });
+  });
+});
+
+describe("POST /api/articles/:article_id/comments", () => {
+  test("POST 201: adds a new comment to the database and responds with posted comment", () => {
+    return request(app)
+      .post("/api/articles/1/comments/")
+      .send({
+        body: 'New comment to post',
+        username: 'icellusedkars'
+      },)
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.postedComment).toEqual({
+          comment_id: expect.any(Number),
+          body: 'New comment to post',
+          article_id: 1,
+          author: 'icellusedkars',
+          votes: 0,
+          created_at: body.postedComment.created_at
+        })
+      });
+  });
+  test("POST 404: responds with 'Bad Request! ...' if article_id has not been found", () => {
+    return request(app)
+      .post("/api/articles/500/comments")
+      .send({
+        body: 'New comment to post',
+        username: 'icellusedkars'
+      },)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe('Bad Request! There is no such article id!');
+      });
+  });
+  test("POST 400: responds with 'Bad article_id!' when article id entered in wrong format", () => {
+    return request(app)
+      .post("/api/articles/wrong_format/comments")
+      .send({
+        body: 'New comment to post',
+        username: 'icellusedkars'
+      },)
+      .expect(400)
+      .then(({ res }) => {
+        expect(res.statusMessage).toBe('Bad article_id!');
+      });
+  });
+  test("POST 404: responds with 'Bad Request!...' when article id entered in wrong format", () => {
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send({
+        body: 'New comment to post',
+        username: 'does_not_exist'
+      },)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe('Bad Request! There is no such username!');
       });
   });
 });
