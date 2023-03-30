@@ -4,6 +4,7 @@ const seed = require('../db/seeds/seed');
 const testData = require('../db/data/test-data/');
 const connection = require('../db/connection');
 const db = require("../db/connection");
+//import { sorted } from 'jest-sorted';
 
 
 beforeEach(() => {
@@ -102,11 +103,7 @@ describe("GET /api/articles", () => {
         const { articles } = body;
         expect(articles).toBeInstanceOf(Array);
         expect(articles).toHaveLength(12);
-        const articlesCopy = [...articles];
-        const sortedArticles = articlesCopy.sort((articleA, articleB) => {
-          return articleA.created_at - articleB.created_at
-        });
-        expect(articles).toEqual(sortedArticles);
+        expect(articles).toBeSorted({ key: articles.created_at })
         articles.forEach((article) => {
           expect(article).toHaveProperty('article_id', expect.any(Number));
           expect(article).toHaveProperty('title', expect.any(String));
@@ -131,12 +128,8 @@ describe("GET /api/articles/:article_id/comments", () => {
         const { comments } = body;
         expect(comments).toBeInstanceOf(Array);
         expect(comments).toHaveLength(11);
-        const commentsCopy = [...comments];
-        const sortedComments = commentsCopy.sort((commentA, commentB) => {
-          return commentA.created_at - commentB.created_at
-        });
-        expect(comments).toEqual(sortedComments);
-        sortedComments.forEach((comment) => {
+        expect(comments).toBeSorted({ key: comments.created_at })
+        comments.forEach((comment) => {
           expect(comment).toHaveProperty('comment_id', expect.any(Number));
           expect(comment).toHaveProperty('body', expect.any(String));
           expect(comment).toHaveProperty('votes', expect.any(Number));
@@ -193,16 +186,16 @@ describe("POST /api/articles/:article_id/comments", () => {
         })
       });
   });
-  test("POST 400: responds with 'Bad Request! ...' if article_id has not been found", () => {
+  test("POST 404: responds with 'Bad Request! ...' if article_id has not been found", () => {
     return request(app)
       .post("/api/articles/500/comments")
       .send({
         body: 'New comment to post',
         username: 'icellusedkars'
       },)
-      .expect(400)
+      .expect(404)
       .then(({ res }) => {
-        expect(res.statusMessage).toBe('Bad Request! Key (article_id)=(500) is not present in table \"articles\".');
+        expect(res.statusMessage).toBe('Bad Request! There is no such article id!');
       });
   });
   test("POST 400: responds with 'Bad article_id!' when article id entered in wrong format", () => {
@@ -217,16 +210,16 @@ describe("POST /api/articles/:article_id/comments", () => {
         expect(res.statusMessage).toBe('Bad article_id!');
       });
   });
-  test("POST 400: responds with 'Bad Request!...' when article id entered in wrong format", () => {
+  test("POST 404: responds with 'Bad Request!...' when article id entered in wrong format", () => {
     return request(app)
       .post("/api/articles/1/comments")
       .send({
         body: 'New comment to post',
         username: 'does_not_exist'
       },)
-      .expect(400)
+      .expect(404)
       .then(({ res }) => {
-        expect(res.statusMessage).toBe('Bad Request! Key (author)=(does_not_exist) is not present in table \"users\".');
+        expect(res.statusMessage).toBe('Bad Request! There is no such username!');
       });
   });
 });

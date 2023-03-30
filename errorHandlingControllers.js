@@ -2,12 +2,13 @@ exports.handleInvalidPath = (req, res, next) => {
     res.status(404).send({ msg: 'Invalid path entered. Please check your URL and try again.'});
   };
 
-exports.handlePSQL400s = (err, req, res, next) => {
+exports.handlePSQLs = (err, req, res, next) => {
     if (err.code === '22P02' && !err.detail) {
         res.status(400).send(res.statusMessage = "Bad article_id!");
     } else {
     if (err.code === '23503'){
-        res.status(400).send(res.statusMessage = "Bad Request! " + err.detail);
+        const message = (err.detail.includes('articles')) ? 'article id' : 'username';
+        res.status(404).send(res.statusMessage = `Bad Request! There is no such ${message}!`);
     } else 
         next(err);
     }
