@@ -74,7 +74,7 @@ exports.fetchCommentsByArticleId = (article_id) => {
           if (!result.rows.length) {
             return Promise.reject({status: 404})
           } else {
-            return Promise.reject({status: 204})}
+            return Promise.reject({status: 204, msg: 'No comments found for this article!'})}
         })
     } else {
     return result.rows;

@@ -4,7 +4,7 @@ const seed = require('../db/seeds/seed');
 const testData = require('../db/data/test-data/');
 const connection = require('../db/connection');
 const db = require("../db/connection");
-//import { sorted } from 'jest-sorted';
+
 
 
 beforeEach(() => {
@@ -80,8 +80,8 @@ describe("GET /api/articles/:article_id", () => {
     return request(app)
       .get("/api/articles/1000")
       .expect(404)
-      .then(({ res }) => {
-        expect(res.statusMessage).toBe('Requested information not found!');
+      .then(({ body }) => {
+        expect(body.msg).toBe('Requested information not found!');
       });
   });
   test("GET 400: responds with 'Bad article_id!' when article id entered in wrong format", () => {
@@ -143,6 +143,7 @@ describe("GET /api/articles/:article_id/comments", () => {
   test("GET 204: responds with 'No comments found for this article!' for a valid article_id with no comments", () => {
     return request(app)
       .get("/api/articles/2/comments")
+      .set("Accept", "application/json")
       .expect(204)
       .then(({ res }) => {
         expect(res.statusMessage).toBe("No comments found for this article!");
@@ -152,8 +153,8 @@ describe("GET /api/articles/:article_id/comments", () => {
     return request(app)
       .get("/api/articles/100/comments")
       .expect(404)
-      .then(({ res }) => {
-        expect(res.statusMessage).toBe("Requested information not found!");
+      .then(({ body }) => {
+        expect(body.msg).toBe("Requested information not found!");
       });
   });
   test("GET 400: responds with 'Bad article_id!' when article id entered in wrong format", () => {
@@ -194,8 +195,8 @@ describe("POST /api/articles/:article_id/comments", () => {
         username: 'icellusedkars'
       },)
       .expect(404)
-      .then(({ res }) => {
-        expect(res.statusMessage).toBe('Bad Request! There is no such article id!');
+      .then(({ body }) => {
+        expect(body.msg).toBe('Bad Request! There is no such article id!');
       });
   });
   test("POST 400: responds with 'Bad article_id!' when article id entered in wrong format", () => {
@@ -218,8 +219,8 @@ describe("POST /api/articles/:article_id/comments", () => {
         username: 'does_not_exist'
       },)
       .expect(404)
-      .then(({ res }) => {
-        expect(res.statusMessage).toBe('Bad Request! There is no such username!');
+      .then(({ body }) => {
+        expect(body.msg).toBe('Bad Request! There is no such username!');
       });
   });
 });
