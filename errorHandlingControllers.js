@@ -4,7 +4,7 @@ exports.handleInvalidPath = (req, res, next) => {
 
 exports.handlePSQLs = (err, req, res, next) => {
     if (err.code === '22P02' && !err.detail) {
-        res.statusMessage = "Bad article_id!"
+        res.statusMessage = "Invalid request: not a valid integer entered!"
         res.status(400).send(res.statusMessage);
     } else {
     if (err.code === '23503'){
