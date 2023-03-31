@@ -126,7 +126,7 @@ describe("GET /api/articles/:article_id/comments", () => {
       .then(({ body }) => {
         const { comments } = body;
         expect(comments).toBeInstanceOf(Array);
-        expect(comments).toHaveLength(11);
+        expect(comments).toHaveLength(10);
         expect(comments).toBeSorted({ key: comments.created_at })
         comments.forEach((comment) => {
           expect(comment).toHaveProperty('comment_id', expect.any(Number));
@@ -141,7 +141,7 @@ describe("GET /api/articles/:article_id/comments", () => {
   });
   test("GET 204: responds with 'No comments found for this article!' for a valid article_id with no comments", () => {
     return request(app)
-      .get("/api/articles/2/comments")
+      .get("/api/articles/4/comments")
       .set("Accept", "application/json")
       .expect(204)
       .then(({ res }) => {
@@ -306,7 +306,7 @@ describe("GET /api/articles/:article_id  (including comment_count - expanding th
           article_img_url: expect.any(String),
           comment_count: expect.any(Number),
         });
-        expect(body.article.comment_count).toBeGreaterThanOrEqual(0);
+        expect(body.article.comment_count).toBe(1);
       });
   });
 });
@@ -420,26 +420,22 @@ describe("GET /api/articles?queries", () => {
       });
   });
 
-  test("GET 404: responds with error when there is no article connected with queried topic ", () => {
+  test("GET 204: responds with error when there is no article connected with queried topic ", () => {
     return request(app)
       .get("/api/articles?topic=paper")
+      .expect(204)
+      .then(({ res }) => {
+        expect(res.statusMessage).toBe('No article with slug: paper');
+      });
+  });
+  test("GET 404: responds with error when there is no queried topic name in database ", () => {
+    return request(app)
+      .get("/api/articles?topic=no_name")
       .expect(404)
       .then(({ body }) => {
         expect(body.msg).toBe('Requested information not found!');
       });
   });
-
-
-
-
-
-
-
-
-
-
-
-
 });
 
 describe("GET /api/users", () => {

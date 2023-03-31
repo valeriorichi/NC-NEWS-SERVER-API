@@ -39,10 +39,23 @@ exports.fetchAllArticles = (topic, sort_by = 'created_at', order = 'desc' ) => {
   return db
     .query(query)
     .then((result) => {
+      
       if (!result.rows.length) {
-        return Promise.reject({ status: 404 });
+        return db
+          .query(
+            `
+            SELECT * FROM topics WHERE slug = $1;
+          `, [topic]
+          )
+          .then((result) => {
+            if (!result.rows.length) {
+              return Promise.reject({status: 404});
+            } else {
+              return Promise.reject({status: 204, msg: `No article with slug: ${topic}`});
+            }
+          });
       } else {
-        return result.rows;
+         return result.rows;
       }
     });
 };

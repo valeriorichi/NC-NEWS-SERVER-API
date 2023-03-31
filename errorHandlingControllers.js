@@ -19,8 +19,8 @@ exports.handlePSQLs = (err, req, res, next) => {
 
 exports.handle204Status = (err, req, res, next) => {
     if (err.status === 204) {
-        res.statusMessage = 'No comments found for this article!'
-        res.status(204).send(res.statusMessage);
+        res.statusMessage = err.msg
+        res.status(204).send(err.msg);
     } else {
         next(err);
     }
