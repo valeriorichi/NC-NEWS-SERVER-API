@@ -10,7 +10,7 @@ if (!process.env.PGDATABASE && !process.env.DB_URL ) {
 }
 
 const config =
-  process.env.NODE_ENV === 'production'
+  ENV === 'production'
     ? {
         connectionString: process.env.DB_URL,
         max: 2
