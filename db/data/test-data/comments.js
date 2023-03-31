@@ -45,7 +45,7 @@ module.exports = [
     body: "Lobster pot",
     votes: 0,
     author: "icellusedkars",
-    article_id: 1,
+    article_id: 2,
     created_at: 1589577540000,
   },
   {

@@ -1,6 +1,16 @@
+const { 
+        getAllTopics, getAllArticles,
+        getArticleById, getCommentsByArticleId,
+        postCommentsByArticleId, patchVotesByArticleById,
+        removeCommentById, getAllUsers
+      } = require("./controllers/ncNews.controller");
+const {
+        handleInvalidPath, handleCustomErrors,
+        handle204Status, handle404Status,
+        handle500Status, handlePSQLs,
+      } = require("./errorHandlingControllers");
+
 const express = require("express");
-const { getAllTopics, getAllArticles, getArticleById, getCommentsByArticleId, postCommentsByArticleId } = require("./controllers/ncNews.controller");
-const { handleInvalidPath, handleCustomErrors, handle204Status, handle404Status, handle500Status, handlePSQLs } = require("./errorHandlingControllers");
 const app = express();
 
 app.use(express.json());
@@ -13,11 +23,17 @@ app.get("/api/topics", getAllTopics);
 
 app.get("/api/articles", getAllArticles);
 
+app.get("/api/users", getAllUsers);
+
 app.get("/api/articles/:article_id", getArticleById);
 
 app.get("/api/articles/:article_id/comments", getCommentsByArticleId)
 
 app.post("/api/articles/:article_id/comments", postCommentsByArticleId)
+
+app.patch("/api/articles/:article_id", patchVotesByArticleById);
+
+app.delete("/api/comments/:comment_id", removeCommentById);
 
 app.use("/*", handleInvalidPath);
 app.use(handlePSQLs);
