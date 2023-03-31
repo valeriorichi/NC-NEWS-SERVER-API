@@ -12,46 +12,52 @@ exports.fetchAllTopics = () => {
     })
 };
 
-exports.fetchAllArticles = (topic, sort_by, order) => {
+exports.fetchAllArticles = (topic, sort_by = 'created_at', order = 'desc' ) => {
   const articlesTable = ['article_id', 'title', 'topic', 'author', 'created_at', 'votes', 'article_img_url', 'comment_count'];
-  if (!articlesTable.includes(sort_by)) sort_by = 'created_at';
-  if (order !== 'asc' && order !== 'desc') order = 'desc';
-  let query = `
-    SELECT 
-    articles.author,
-    articles.title,
-    articles.article_id,
-    articles.topic,
-    articles.created_at,
-    articles.votes,
-    articles.article_img_url,
-    CAST(COUNT(comments.comment_id) AS INTEGER) AS comment_count
-    FROM articles
-    LEFT JOIN comments ON articles.article_id = comments.article_id
-  `;
-  if (topic) { query = query + `WHERE articles.topic = '${topic}' `}
+  if (!articlesTable.includes(sort_by)) return Promise.reject({ code: "23400" });
+  let query =
+        `
+          SELECT 
+          articles.author,
+          articles.title,
+          articles.article_id,
+          articles.topic,
+          articles.created_at,
+          articles.votes,
+          articles.article_img_url,
+          CAST(COUNT(comments.comment_id) AS INTEGER) AS comment_count
+          FROM articles
+          LEFT JOIN comments ON articles.article_id = comments.article_id
+        `;
+
+  if (topic) query = query + ` WHERE articles.topic = '${topic}'`;
+  
   query = query + `
     GROUP BY articles.article_id
-    ORDER BY ${sort_by} ${order};
+    ORDER BY articles.${sort_by} ${order};
   `;
   return db
     .query(query)
     .then((result) => {
-      return result.rows;
+      if (!result.rows.length) {
+        return Promise.reject({ status: 404 });
+      } else {
+        return result.rows;
+      }
     });
 };
 
-exports.fetchArticleById = (article_id, includeCommentCount = false) => {
-  let query = `
-  SELECT articles.*
-    ${includeCommentCount ? ', CAST(COUNT(comments.comment_id) AS INTEGER) AS comment_count' : ''}
-    FROM articles
-    ${includeCommentCount ? 'LEFT JOIN comments ON articles.article_id = comments.article_id' : ''}
-    WHERE articles.article_id = $1
-    GROUP BY articles.article_id;
-`;
+exports.fetchArticleById = (article_id) => {
   return db
-    .query(query, [parseInt(article_id)])
+    .query(
+      `
+      SELECT articles.*,
+      CAST(COUNT(comments.comment_id) AS INTEGER) AS comment_count
+      FROM articles
+      LEFT JOIN comments ON articles.article_id = comments.article_id
+      WHERE articles.article_id = $1
+      GROUP BY articles.article_id;
+      `, [parseInt(article_id)])
     .then((result) => {
       if (!result.rows.length) {
         return Promise.reject({ status: 404 });

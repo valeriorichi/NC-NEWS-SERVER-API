@@ -6,11 +6,13 @@ exports.handlePSQLs = (err, req, res, next) => {
     if (err.code === '22P02' && !err.detail) {
         res.statusMessage = "Invalid request: not a valid integer entered!"
         res.status(400).send(res.statusMessage);
-    } else {
-    if (err.code === '23503'){
+    } else if (err.code === '23503') {
         const message = (err.detail.includes('articles')) ? 'article id' : 'username';
-        res.status(404).send({msg: `Bad Request! There is no such ${message}!`});
-    } else 
+        res.status(404).send({ msg: `Bad Request! There is no such ${message}!` });
+    } else if (err.code === '23400') {
+        res.statusMessage = "Invalid sort_by query parameter! Please check and try again."
+        res.status(400).send(res.statusMessage);
+    } else {
         next(err);
     }
 };

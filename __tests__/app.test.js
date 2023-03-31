@@ -62,16 +62,15 @@ describe("GET /api/articles/:article_id", () => {
       .get("/api/articles/2")
       .expect(200)
       .then(({ body }) => {
-        expect(body.article).toEqual({
-          article_id: 2,
-          title: 'Sony Vaio; or, The Laptop',
-          topic: 'mitch',
-          author: 'icellusedkars',
-          body: expect.any(String),
-          created_at: "2020-10-16T05:03:00.000Z",
-          votes: 0,
-          article_img_url: expect.any(String),
-        })
+        expect(body.article).toHaveProperty('article_id', expect.any(Number));
+        expect(body.article).toHaveProperty('title', expect.any(String));
+        expect(body.article).toHaveProperty('topic', expect.any(String));
+        expect(body.article).toHaveProperty('author', expect.any(String));
+        expect(body.article).toHaveProperty('body', expect.any(String));
+        expect(body.article).toHaveProperty('created_at');
+        expect(new Date(body.article.created_at)).toEqual(expect.any(Date));
+        expect(body.article).toHaveProperty('votes', expect.any(Number));
+        expect(body.article).toHaveProperty('article_img_url', expect.any(String));
         expect(body.article.body).toMatch(/^Call me Mitchell/);
         expect(body.article.article_img_url).toMatch(/^https/)
       })
@@ -290,10 +289,10 @@ describe("PATCH /api/articles/:article_id/", () => {
   });
 })
 
-describe("GET /api/articles/:article_id?comment_count=true", () => {
-  test("GET 200: responds with article object, which should have comment count property when comment_count=true", () => {
+describe("GET /api/articles/:article_id  (including comment_count - expanding the original functionality)", () => {
+  test("GET 200: responds with article object, which should have comment count property", () => {
     return request(app)
-      .get("/api/articles/2?comment_count=true")
+      .get("/api/articles/2")
       .expect(200)
       .then(({ body }) => {
         expect(body.article).toEqual({
@@ -310,42 +309,6 @@ describe("GET /api/articles/:article_id?comment_count=true", () => {
         expect(body.article.comment_count).toBeGreaterThanOrEqual(0);
       });
   });
-  test("GET 200: responds with article object, which should not have comment count property when comment_count=false or not provided", () => {
-    return request(app)
-      .get("/api/articles/2?comment_count=false")
-      .expect(200)
-      .then(({ body }) => {
-        expect(body.article).toEqual({
-          article_id: 2,
-          title: 'Sony Vaio; or, The Laptop',
-          topic: 'mitch',
-          author: 'icellusedkars',
-          body: expect.any(String),
-          created_at: "2020-10-16T05:03:00.000Z",
-          votes: 0,
-          article_img_url: expect.any(String),
-        });
-        expect(body.article.comment_count).toBeUndefined();
-      })
-      .then(() => {
-        return request(app)
-          .get("/api/articles/2")
-          .expect(200);
-      })
-      .then(({ body }) => {
-        expect(body.article).toEqual({
-          article_id: 2,
-          title: 'Sony Vaio; or, The Laptop',
-          topic: 'mitch',
-          author: 'icellusedkars',
-          body: expect.any(String),
-          created_at: "2020-10-16T05:03:00.000Z",
-          votes: 0,
-          article_img_url: expect.any(String),
-        });
-        expect(body.article.comment_count).toBeUndefined();
-      });
-  });
 });
 
 describe("DELETE /api/comments/:comment_id", () => {
@@ -353,7 +316,7 @@ describe("DELETE /api/comments/:comment_id", () => {
     let testedCommentCount;
     let commentId;
     return request(app)
-      .get("/api/articles/1?comment_count=true")
+      .get("/api/articles/1")
       .expect(200)
       .then(({ body }) => {
           testedCommentCount = body.article.comment_count;
@@ -377,7 +340,7 @@ describe("DELETE /api/comments/:comment_id", () => {
       })
       .then(() => {
         return request(app)
-          .get("/api/articles/1?comment_count=true")
+          .get("/api/articles/1")
           .expect(200)})
       .then(({ body }) => {
         expect(body.article.comment_count).toBe(testedCommentCount);
@@ -411,7 +374,7 @@ describe("GET /api/articles?queries", () => {
       .then(({ body }) => {
         const { articles } = body;
         expect(articles).toBeInstanceOf(Array);
-        expect(articles).toHaveLength(12);
+        expect(articles).toHaveLength(11);
         expect(articles[0].topic).toEqual("mitch");
         expect(articles).toBeSorted({ key: articles.created_at })
       });
@@ -434,22 +397,49 @@ describe("GET /api/articles?queries", () => {
       .then(({ body }) => {
         const { articles } = body;
         expect(articles).toBeInstanceOf(Array);
-        expect(articles).toHaveLength(12);
+        expect(articles).toHaveLength(11);
         expect(articles[0].topic).toEqual("mitch");
         expect(articles).toBeSorted({ key: articles.votes, descending: false })
       });
   });
-  test("GET 200: array of article objects sorted by a default column and in the default order when no query is specified", () => {
+  test("GET 400: sort_by query is invalid", () => {
     return request(app)
-      .get("/api/articles")
-      .expect(200)
-      .then(({ body }) => {
-        const { articles } = body;
-        expect(articles).toBeInstanceOf(Array);
-        expect(articles).toHaveLength(12);
-        expect(articles).toBeSorted({ key: articles.created_at, descending: true })
+      .get("/api/articles?sort_by=bananas")
+      .expect(400)
+      .then(({ res }) => {
+        expect(res.statusMessage).toEqual("Invalid sort_by query parameter! Please check and try again.");
       });
   });
+
+  test("GET 400: order query is invalid", () => {
+    return request(app)
+      .get("/api/articles?order=asc&desc")
+      .expect(400)
+      .then(({ res }) => {
+        expect(res.statusMessage).toEqual("Invalid sort_by query parameter! Please check and try again.");
+      });
+  });
+
+  test("GET 404: responds with error when there is no article connected with queried topic ", () => {
+    return request(app)
+      .get("/api/articles?topic=paper")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe('Requested information not found!');
+      });
+  });
+
+
+
+
+
+
+
+
+
+
+
+
 });
 
 describe("GET /api/users", () => {

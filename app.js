@@ -7,7 +7,7 @@ const {
 const {
         handleInvalidPath, handleCustomErrors,
         handle204Status, handle404Status,
-        handle500Status, handlePSQLs
+        handle500Status, handlePSQLs,
       } = require("./errorHandlingControllers");
 
 const express = require("express");

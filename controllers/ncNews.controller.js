@@ -15,8 +15,13 @@ exports.getAllTopics = (req, res, next) => {
 };
 
 exports.getAllArticles = (req, res, next) => {
+  const allowedKeys = ['topic', 'sort_by', 'order'];
+  if (
+    !Object.keys(req.query).every((key) => allowedKeys.includes(key))
+  ) { throw { code: "23400" } };
   const { topic, sort_by, order } = req.query;
-  return fetchAllArticles()
+  
+  return fetchAllArticles(topic, sort_by, order)
     .then((articles) => {
       res.status(200).send({ articles });
     })
@@ -27,8 +32,7 @@ exports.getAllArticles = (req, res, next) => {
 
 exports.getArticleById = (req, res, next) => {
   const { article_id } = req.params;
-  const includeCommentCount = req.query.comment_count === 'true';
-  return fetchArticleById(article_id, includeCommentCount)
+  return fetchArticleById(article_id)
     .then((article) => {
       res.status(200).send({ article });
     })
